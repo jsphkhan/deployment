@@ -53,8 +53,9 @@ This will allow you to run redis cli commands and check the data : docker exec -
 
 Start the Application locally (Dev Mode):
 ------------------------------------------
-npm run dev
-http://localhost:3000
+Start redis instance on laptop: redis-server
+Start Node server: npm run dev
+Browser: http://localhost:3000
 
 
 Reference:
