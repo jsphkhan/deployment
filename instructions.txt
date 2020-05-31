@@ -1,0 +1,66 @@
+This is a playground for me to try out all Deployment Concepts
+
+Docker 
+Docker Compose
+Kubernetes
+Helm
+etc
+
+The Project is a:
+------------------
+Node Express server
+Redis In Memory DB for Caching
+MongoDB/Mongoose DB for reading and writing data
+Very simple project that reads and writes into Redis and Mongo
+Basically want to try out microservice kind of architecture, 
+load balance multiple Node instances(running as Docker containers) using Nginx docker container
+
+
+Start the application/server using Docker (Production Mode)
+------------------------------------------------------------
+Use Docker Compose to start the multi container application: docker-compose up --build
+This will build the images(first time or if there is any change) and run the 
+Docker containers or services that we have listed inside docker-compose.yml file
+
+Docker Containers that will be started:
+1. Redis Container 6379:6379
+2. Node server1 5001:3000
+3. Node server2 5002:3000
+4. Nginx server 8080:8080
+
+Nginx server acts a reverse proxy for node servers.
+
+Check the running containers: docker-compose ps
+
+Stop all the containers: docker-compose down
+
+
+
+Test the Application:
+---------------------
+Once docker compose runs all containers,
+
+http://localhost:8080 -> this will hit nginx server. Internally nginx will hit our node servers defined inside nginx.conf file
+
+GET http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and get data from redis cache
+POST http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and set data into redis cache
+
+
+Open Redis Shell inside Docker container:
+------------------------------------------
+This will allow you to run redis cli commands and check the data : docker exec -it redisdb redis-cli
+
+
+Start the Application locally (Dev Mode):
+------------------------------------------
+npm run dev
+http://localhost:3000
+
+
+Reference:
+-------------
+Docker compose getting started: https://docs.docker.com/compose/gettingstarted/
+Docker compose with Node and Mongo: https://www.youtube.com/watch?v=hP77Rua1E0c
+Docker compose with Node and Redis: http://progressivecoder.com/docker-compose-nodejs-application-with-redis-integration/
+Running Redis with Docker (Hussein Nasser): https://www.youtube.com/watch?v=ZkwKyUZWkp4
+Docker compose and Nginx (running microservices) - https://www.youtube.com/watch?v=QjhJs31h_4k
