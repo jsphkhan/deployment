@@ -14,6 +14,7 @@ MongoDB/Mongoose DB for reading and writing data
 Very simple project that reads and writes into Redis and Mongo
 Basically want to try out microservice kind of architecture, 
 load balance multiple Node instances(running as Docker containers) using Nginx docker container
+Both Redis and Mongo also runs as separate Docker containers
 
 
 Start the application/server using Docker (Production Mode)
@@ -22,19 +23,25 @@ Use Docker Compose to start the multi container application: docker-compose up -
 This will build the images(first time or if there is any change) and run the 
 Docker containers or services that we have listed inside docker-compose.yml file
 
+Only start containers: docker-compose up (do not build images every time)
+
 Docker Containers that will be started:
 1. Redis Container 6379:6379
-2. Node server1 5001:3000
-3. Node server2 5002:3000
-4. Nginx server 8080:8080
+2. MongoDB Container 27017:27017
+3. Node server1 5001:3000
+4. Node server2 5002:3000
+5. Nginx server 8080:4040
 
 Nginx server acts a reverse proxy for node servers.
 
-Check the running containers: docker-compose ps
+Check the running containers: docker-compose ps or docker ps
 
-Stop all the containers: docker-compose down
+Stop all the containers: docker-compose stop
+Stop and remove containers: docker-compose down
 
-
+When you stop containers using down command, the next time you start it will create new containers
+So if Redis was storing data, it will loose data since new container is started. 
+Using CTRL-C to stop docker compose solves this problem or use volumes concept
 
 Test the Application:
 ---------------------
@@ -42,26 +49,51 @@ Once docker compose runs all containers,
 
 http://localhost:8080 -> this will hit nginx server. Internally nginx will hit our node servers defined inside nginx.conf file
 
-GET http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and get data from redis cache
-POST http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and set data into redis cache
+GET http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and get data from redis cache/mongoDB
+POST http://localhost:8080/users -> this will hit nginx. internally it will hit node servers and set data into redis cache/mongoDB
 
+GET http://localhost:8080 -> returns the root path (See Node server.js)
 
 Open Redis Shell inside Docker container:
 ------------------------------------------
-This will allow you to run redis cli commands and check the data : docker exec -it redisdb redis-cli
+This will allow you to run redis cli commands and check the data: docker exec -it redisdb redis-cli
 
 
 Start the Application locally (Dev Mode):
 ------------------------------------------
+Start mongoDB instance on laptop: mongodb/bin/mongod
 Start redis instance on laptop: redis-server
 Start Node server: npm run dev
 Browser: http://localhost:3000
 
 
+Pending:
+--------
+1. Serve static files from Nginx instead of NodeJS. NodeJS is bad at IO - see this https://www.youtube.com/watch?v=QjhJs31h_4k
+2. Clarify concepts on why Mongo & Redis lose data on docker-compose down? - working now
+    a. Check this tutorial on data persist using volumes and mounts for Mongo: https://www.digitalocean.com/community/tutorials/containerizing-a-node-js-application-for-development-with-docker-compose
+    b. Check this for data persist with redis using volumes: https://github.com/docker-library/redis/issues/111
+3. Use Password with Redis
+4. Use Password with MongoDB
+
+
+Learn about Docker Compose Mounts and Volumes (with examples):
+----------------------------------------------------------------
+1. https://docs.docker.com/compose/gettingstarted/
+2. with mongodb: https://www.digitalocean.com/community/tutorials/containerizing-a-node-js-application-for-development-with-docker-compose
+
+
 Reference:
 -------------
 Docker compose getting started: https://docs.docker.com/compose/gettingstarted/
-Docker compose with Node and Mongo: https://www.youtube.com/watch?v=hP77Rua1E0c
+Docker compose with Node and Mongo (Traversy Media): https://www.youtube.com/watch?v=hP77Rua1E0c
 Docker compose with Node and Redis: http://progressivecoder.com/docker-compose-nodejs-application-with-redis-integration/
 Running Redis with Docker (Hussein Nasser): https://www.youtube.com/watch?v=ZkwKyUZWkp4
-Docker compose and Nginx (running microservices) - https://www.youtube.com/watch?v=QjhJs31h_4k
+Docker compose in 12 mins: https://www.youtube.com/watch?v=Qw9zlE3t8Ko
+Docker compose and Nginx (with static files), Mongo, Node (running microservices) - 
+    Part2: https://www.youtube.com/watch?v=aWxR05rUoto
+    Part3: https://www.youtube.com/watch?v=QjhJs31h_4k
+
+Deploy to Production with Docker Compose: 
+    Docker Context concept: https://www.docker.com/blog/how-to-deploy-on-remote-docker-hosts-with-docker-compose/
+    With Kubernetes: https://www.digitalocean.com/community/tutorials/how-to-migrate-a-docker-compose-workflow-to-kubernetes

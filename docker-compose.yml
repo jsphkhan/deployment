@@ -6,34 +6,60 @@ services:
         container_name: redisdb
         ports: 
             - 6379:6379
+        volumes: 
+            - redis-data:/data
+    
+    db:
+        image: mongo:4.2.5 
+        container_name: db
+        ports: 
+            - 27017:27017
+        volumes: 
+            - dbdata:/data/db
+        # env_file: .env
+        # environment: 
+        #     - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
+        #     - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
 
     nodeapp1:
+        #context: .
+        #dockerfile: Dockerfile
         build: .
         container_name: nodeapp1
+        restart: always
         ports: 
             - 5001:3000
         depends_on: 
             - redisdb
+            - db
         environment: 
             - REDIS_HOST=redisdb
+            - MONGO_URL=mongodb://db/testdatabase
     
     nodeapp2:
         build: .
         container_name: nodeapp2
+        restart: always
         ports: 
             - 5002:3000
         depends_on: 
             - redisdb
+            - db
         environment: 
             - REDIS_HOST=redisdb
+            - MONGO_URL=mongodb://db/testdatabase
 
     nginx:
         image: nginx:latest
         container_name: nginx
         ports: 
-            - 8080:8080 
+            - 8080:4040 
         volumes: 
             - ./nginx.conf:/etc/nginx/nginx.conf
         depends_on: 
             - nodeapp1
             - nodeapp2
+
+volumes: 
+    dbdata:
+    redis-data:
